@@ -8,6 +8,6 @@
   </select>
   
   <insert id="insert" parameterType="HashMap">
- 	insert into miniboard {comment} values ( #{text})
+ 	insert into miniboard  values ( #{name},#{text})
   </insert>
 </mapper>
