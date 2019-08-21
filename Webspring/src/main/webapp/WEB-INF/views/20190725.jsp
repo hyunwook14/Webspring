@@ -67,53 +67,52 @@ $(document).ready(function(){
 	 * get()           : localStorage.getItem()을 이용하여 저장 되어 있는 데이터를 가져오기 위한 함수
 	 ************************************************************************************************/
 
-
-
-	
-	
-
 	function createHtml(){
-		//
-		//get();
-		$("tbody").empty();
-		$("#text").val("");
-		for(var j = 0; j < storage.length; j++){
-			var tag = '<tr>' +
-					    '<td><input type="checkbox"></td>' +
-					    '<td>' + (j+1) + '</td>' +
-							'<td>' + data[j].comment + '</td>' +
-					  '</tr>';
-					  
-			$("tbody").append(tag);		  
-		}
-		
-		
-		if(storage.length > 0){
-			i = storage.length + 1;
+		$.ajax({
+			url:"/getData",
+			type:"POST",
+			data:{},
+			complete:function(){
+			}
+		}).done(function(data){
 			
-			$("input:checkbox").off();
-			$("input:checkbox").click(function(){ // 리스트에 있는 체크박스의 이벤트 처리
-				$("button:button").removeClass("disabled");
-				var index = $("input:checkbox").index(this);
-				var tr = $("tbody tr").eq(index);
-				var tds = tr.find("td");
-				var text = "";
+			$("tbody").empty();
+			var rdata = JSON.parse(data);
+			/**/
+			for(var i =0; i<rdata.data.result.length; i++){
+			var tag = '<tr>' +
+		    '<td><input type="checkbox"></td>' +
+		    '<td class="no">' + rdata.data.result[i].no + '</td>' +
+				'<td class="comment">' + rdata.data.result[i].comment + '</td>' +
+		  	'</tr>';
+			$("tbody").append(tag);	
+			}
+			
+			if(rdata.data.result.length > 0){
 				
-				if($(this).prop("checked")){ // 현재 선택한 체크박스의 값이 true인지 확인
-					$("input:checkbox").prop("checked",false); // 전체 체크박스의 값을 false로 변경
-					$(this).prop("checked",true); // 현재 선택한 체크박스의 값만 true로 변경
+				$("input:checkbox").off();
+				$("input:checkbox").click(function(){ // 리스트에 있는 체크박스의 이벤트 처리
+					$("button:button").removeClass("disabled");
+					var index = $("input:checkbox").index(this);
+					var tr = $("tbody tr").eq(index);
+					var tds = tr.find("td");
+					var text = "";
 					
-					text = tds.eq(2).text();
-					$("#text").val(text);
-				}else{
-					$("input:checkbox").prop("checked",false); // 전체 체크박스의 값을 false로 변경
-					
-					$("#text").val("");
-				}
-			});
-		}else {
-			i = 1;
-		}
+					if($(this).prop("checked")){ // 현재 선택한 체크박스의 값이 true인지 확인
+						$("input:checkbox").prop("checked",false); // 전체 체크박스의 값을 false로 변경
+						$(this).prop("checked",true); // 현재 선택한 체크박스의 값만 true로 변경
+						
+						text = tds.eq(2).text();
+						$("#text").val(text);
+					}else{
+						$("input:checkbox").prop("checked",false); // 전체 체크박스의 값을 false로 변경
+						
+						$("#text").val("");
+					}
+				});
+			}
+		});
+		$("#text").val("");
 	}
 	 
 	function createEvent(){ // 추가버튼 누를시 이벤트 생성 부분!!
@@ -122,13 +121,12 @@ $(document).ready(function(){
 			$.ajax({
 				url:"/setData",
 				type:"POST",
-				data:{"text":text, "no":i}
+				data:{"text":text},
+				complete:function(){
+					alert("입력완료");
+					createHtml();
+				}
 			});
-			var newData = {"no": i, "text": text};
-			storage.push(newData);
-			
-			
-			
 			$("#text").val("");
 		}else{
 			alert("한줄평 입력 후 다시 시도해주세요.");
@@ -137,18 +135,32 @@ $(document).ready(function(){
 
 	function editEvent(type){
 		var index = checkboxIndex();
+		var no = $(".no").eq(index).text();
+		var comment = $("#text").val();
+		
 		if(index > -1){
 			if(type == "update"){
-				var newData = storage[index];
-				var text = $("#text").val();
-			
-				newData.text = text;
-				storage[index] = newData;
-			}else if(type == "delete"){
 				
-				//storage.splice(index, 1);
+				$.ajax({
+					url:"/updateData",
+					type:"POST",
+					data:{"no":no, "comment":comment},
+					complete:function(){
+						alert("수정시작");
+						$("#text").val("");
+						createHtml();
+					}
+				});
+			}else if(type == "delete"){
+				$.ajax({
+					url:"/deleteData",
+					type:"POST",
+					data:{"no":no},
+					complete:function(){
+						createHtml();
+					}
+				});
 			}
-			//set(storage);
 			
 		}else{
 			alert("선택 후 다시 시도해주세요.");
@@ -165,9 +177,6 @@ $(document).ready(function(){
 		}
 		return index;
 	}
-
-
-	
 	createHtml();
 });
 </script>

@@ -8,6 +8,19 @@
   </select>
   
   <insert id="insert" parameterType="HashMap">
- 	insert into miniboard  values ( #{name},#{text})
+ 	insert into miniboard (`comment`)values (#{text})
   </insert>
+  
+  <select id="select" resultType="HashMap">
+  	select * from miniboard where del_YN = 'N'
+  </select>
+  
+  <update id="delete" parameterType="HashMap">
+  	update miniboard set del_YN = 'Y' where no = #{no}
+  </update>
+  
+  <update id="update" parameterType="HashMap">
+  	update miniboard set comment = #{comment} where no = #{no}
+  </update>
+  
 </mapper>
